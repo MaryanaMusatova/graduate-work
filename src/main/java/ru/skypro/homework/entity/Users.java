@@ -2,6 +2,7 @@ package ru.skypro.homework.entity;
 
 import lombok.*;
 import com.example.exampleforgraduatework.dto.Role;
+import ru.skypro.homework.dto.Role;
 
 import javax.persistence.Table;
 
