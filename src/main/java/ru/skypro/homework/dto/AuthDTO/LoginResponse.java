@@ -13,6 +13,10 @@ public class LoginResponse {
         this.avatar = avatar;
     }
 
+    public LoginResponse() {
+
+    }
+
     public String getAccess_token() {
         return access_token;
     }

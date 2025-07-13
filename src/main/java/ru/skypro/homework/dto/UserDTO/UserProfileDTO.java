@@ -22,6 +22,10 @@ public class UserProfileDTO {
         this.registrationDate = registrationDate;
     }
 
+    public UserProfileDTO() {
+
+    }
+
     public Long getId() {
         return id;
     }
