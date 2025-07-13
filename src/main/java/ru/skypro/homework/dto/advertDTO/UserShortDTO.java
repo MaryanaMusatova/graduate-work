@@ -1,4 +1,4 @@
-package ru.skypro.homework.dto.AdvertDTO;
+package ru.skypro.homework.dto.advertDTO;
 /**
  * DTO для краткого представления пользователя (в составе других DTO)
  */

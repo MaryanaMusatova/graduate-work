@@ -1,7 +1,8 @@
-package ru.skypro.homework.dto.CommentDTO;
+package ru.skypro.homework.dto.commentDTO;
 
-import ru.skypro.homework.dto.AdvertDTO.UserShortDTO;
+import ru.skypro.homework.dto.advertDTO.UserShortDTO;
 
+import javax.xml.stream.events.Comment;
 import java.time.LocalDateTime;
 /**
  * DTO для представления комментария

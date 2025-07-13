@@ -1,4 +1,4 @@
-package ru.skypro.homework.dto.UserDTO;
+package ru.skypro.homework.dto.userDTO;
 
 import java.time.LocalDateTime;
 

@@ -1,4 +1,4 @@
-package ru.skypro.homework.dto.AuthDTO;
+package ru.skypro.homework.dto.authDTO;
 
 /**
  * DTO для ответа после успешной авторизации/регистрации

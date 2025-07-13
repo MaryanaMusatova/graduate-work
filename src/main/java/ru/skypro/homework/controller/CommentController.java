@@ -2,9 +2,9 @@ package ru.skypro.homework.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.skypro.homework.dto.AdvertDTO.UserShortDTO;
-import ru.skypro.homework.dto.CommentDTO.CommentCreateDTO;
-import ru.skypro.homework.dto.CommentDTO.CommentDTO;
+import ru.skypro.homework.dto.advertDTO.UserShortDTO;
+import ru.skypro.homework.dto.commentDTO.CommentCreateDTO;
+import ru.skypro.homework.dto.commentDTO.CommentDTO;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

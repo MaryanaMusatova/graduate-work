@@ -3,8 +3,8 @@ package ru.skypro.homework.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import ru.skypro.homework.dto.UserDTO.UserProfileDTO;
-import ru.skypro.homework.dto.UserDTO.UserUpdateDTO;
+import ru.skypro.homework.dto.userDTO.UserProfileDTO;
+import ru.skypro.homework.dto.userDTO.UserUpdateDTO;
 
 import java.time.LocalDateTime;
 

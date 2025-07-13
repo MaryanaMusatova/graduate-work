@@ -1,4 +1,4 @@
-package ru.skypro.homework.dto.AdvertDTO;
+package ru.skypro.homework.dto.advertDTO;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

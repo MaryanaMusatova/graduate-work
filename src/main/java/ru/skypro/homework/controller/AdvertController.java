@@ -5,9 +5,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
-import ru.skypro.homework.dto.AdvertDTO.AdvertCreateDTO;
-import ru.skypro.homework.dto.AdvertDTO.AdvertDTO;
-import ru.skypro.homework.dto.AdvertDTO.UserShortDTO;
+import ru.skypro.homework.dto.advertDTO.AdvertCreateDTO;
+import ru.skypro.homework.dto.advertDTO.AdvertDTO;
+import ru.skypro.homework.dto.advertDTO.UserShortDTO;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

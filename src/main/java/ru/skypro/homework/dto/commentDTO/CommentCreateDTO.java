@@ -1,4 +1,4 @@
-package ru.skypro.homework.dto.CommentDTO;
+package ru.skypro.homework.dto.commentDTO;
 
 import jakarta.validation.constraints.NotBlank;
 

@@ -1,4 +1,4 @@
-package ru.skypro.homework.dto.AuthDTO;
+package ru.skypro.homework.dto.authDTO;
 
 import jakarta.validation.constraints.NotBlank;
 

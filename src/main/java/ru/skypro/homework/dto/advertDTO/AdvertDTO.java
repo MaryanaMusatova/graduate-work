@@ -1,6 +1,6 @@
-package ru.skypro.homework.dto.AdvertDTO;
+package ru.skypro.homework.dto.advertDTO;
 
-import ru.skypro.homework.dto.CommentDTO.CommentDTO;
+import ru.skypro.homework.dto.commentDTO.CommentDTO;
 
 import java.time.LocalDateTime;
 import java.util.List;
