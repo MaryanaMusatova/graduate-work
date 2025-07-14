@@ -1,84 +1,52 @@
 package ru.skypro.homework.controller;
 
-import org.springframework.http.ResponseEntity;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
-import ru.skypro.homework.dto.advertDTO.UserShortDTO;
-import ru.skypro.homework.dto.commentDTO.CommentCreateDTO;
-import ru.skypro.homework.dto.commentDTO.CommentDTO;
+import ru.skypro.homework.dto.comment.CommentDTO;
+import ru.skypro.homework.dto.comment.CreateOrUpadateComment;
+import ru.skypro.homework.service.CommentService;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
+@Slf4j
+@CrossOrigin(value = "http://localhost:3000")
 @RestController
-@RequestMapping("/api/ads/{advertId}/comments")
+@RequiredArgsConstructor
+@RequestMapping("ads")
 public class CommentController {
-    // Временное хранилище комментариев (заглушка)
-    private final List<CommentDTO> stubComments = new ArrayList<>();
-    private final AtomicLong commentIdCounter = new AtomicLong(1);
 
-    public CommentController() {
-        // Инициализация тестовых данных
-        initializeStubData();
+    private static final Logger logger = LoggerFactory.getLogger(CommentController.class);
+
+    private final CommentService commentService;
+
+    //Получение комментариев объявления
+    @GetMapping("/{id}/comments")
+    public List<CommentDTO> getComments(@PathVariable("id") Integer adId) {
+        logger.info("get all comments");
+        return commentService.getComments(adId);
     }
 
-    private void initializeStubData() {
-        UserShortDTO author = new UserShortDTO();
-        author.setId(1L);
-        author.setUsername("stubUser");
-        author.setAvatar("https://example.com/avatar1.jpg");
-
-        CommentDTO comment = new CommentDTO();
-        comment.setId(commentIdCounter.getAndIncrement());
-        comment.setText("Интересное предложение, можно ли посмотреть вживую?");
-        comment.setAuthor(author);
-        comment.setCreatedAt(LocalDateTime.now().minusHours(3));
-        stubComments.add(comment);
+    //Добавление комментария к объявлению
+    @PostMapping("/{id}/comments")
+    public void addComment(@PathVariable("id") Integer adId, @RequestBody CreateOrUpadateComment createOrUpdateComment) {
+        logger.info("add new comment");
+        commentService.addComment(adId, createOrUpdateComment);
     }
 
-    /**
-     * Заглушка для получения комментариев к объявлению
-     * @param advertId ID объявления
-     * @return Список комментариев
-     */
-    @GetMapping
-    public ResponseEntity<List<CommentDTO>> getAdvertComments(@PathVariable Long advertId) {
-        return ResponseEntity.ok(stubComments);
+    //Удаление комментария
+    @DeleteMapping("/{adId}/comments/{commentId}")
+    public void deleteComment(@PathVariable("adId") Integer adId, @PathVariable("commentId") Integer commentId) {
+        logger.info("delete comment");
+        commentService.deleteComment(adId,commentId);
     }
 
-    /**
-     * Заглушка для добавления комментария
-     * @param advertId ID объявления
-     * @param createDTO Текст комментария
-     * @return Созданный комментарий
-     */
-    @PostMapping
-    public ResponseEntity<CommentDTO> addComment(
-            @PathVariable Long advertId,
-            @RequestBody CommentCreateDTO createDTO) {
-        UserShortDTO author = new UserShortDTO();
-        author.setId(1L);
-        author.setUsername("currentUser");
-        author.setAvatar("https://example.com/current_avatar.jpg");
-
-        CommentDTO newComment = new CommentDTO();
-        newComment.setId(commentIdCounter.getAndIncrement());
-        newComment.setText(createDTO.getText());
-        newComment.setAuthor(author);
-        newComment.setCreatedAt(LocalDateTime.now());
-        stubComments.add(newComment);
-
-        return ResponseEntity.ok(newComment);
-    }
-
-    /**
-     * Заглушка для удаления комментария
-     * @param commentId ID комментария
-     */
-    @DeleteMapping("/{commentId}")
-    public ResponseEntity<Void> deleteComment(@PathVariable Long commentId) {
-        stubComments.removeIf(c -> c.getId().equals(commentId));
-        return ResponseEntity.noContent().build();
+    //Обновление комментария
+    @PutMapping("/{adId}/comments/{commentId}")
+    public void updateComment(@PathVariable("adId") Integer adId, @PathVariable("commentId") Integer commentId) {
+        logger.info("update comment");
+        commentService.updateComment(adId,commentId);
     }
 }

@@ -1,8 +1,8 @@
 package ru.skypro.homework.service.impl;
 
 import org.springframework.stereotype.Service;
-import ru.skypro.homework.dto.commentDTO.CommentCreateDTO;
-import ru.skypro.homework.dto.commentDTO.CommentDTO;
+import ru.skypro.homework.dto.comment.CommentDTO;
+import ru.skypro.homework.dto.comment.CreateOrUpadateComment;
 import ru.skypro.homework.service.CommentService;
 
 import java.util.List;
@@ -16,8 +16,8 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public void addComment(Integer id, CommentCreateDTO
-            commentCreateDTO) {
+    public void addComment(Integer id, CreateOrUpadateComment
+            createOrUpadateComment) {
     }
 
     @Override
