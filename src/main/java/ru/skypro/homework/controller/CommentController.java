@@ -2,51 +2,67 @@ package ru.skypro.homework.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.skypro.homework.dto.comment.CommentDTO;
-import ru.skypro.homework.dto.comment.CreateOrUpadateComment;
-import ru.skypro.homework.service.CommentService;
+import ru.skypro.homework.dto.comment.Comments;
+import ru.skypro.homework.dto.comment.CreateOrUpdateComment;
 
-import java.util.List;
+import java.util.Collections;
+
 
 @Slf4j
 @CrossOrigin(value = "http://localhost:3000")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("ads")
+@RequestMapping("/api/ads")
 public class CommentController {
 
-    private static final Logger logger = LoggerFactory.getLogger(CommentController.class);
-
-    private final CommentService commentService;
-
-    //Получение комментариев объявления
-    @GetMapping("/{id}/comments")
-    public List<CommentDTO> getComments(@PathVariable("id") Integer adId) {
-        logger.info("get all comments");
-        return commentService.getComments(adId);
+    @GetMapping("/{adId}/comments")
+    public ResponseEntity<Comments> getComments(@PathVariable Integer adId) {
+        // Заглушка для получения комментариев
+        Comments comments = new Comments();
+        comments.setCount(0);
+        comments.setResults(Collections.emptyList());
+        return ResponseEntity.ok(comments);
     }
 
-    //Добавление комментария к объявлению
-    @PostMapping("/{id}/comments")
-    public void addComment(@PathVariable("id") Integer adId, @RequestBody CreateOrUpadateComment createOrUpdateComment) {
-        logger.info("add new comment");
-        commentService.addComment(adId, createOrUpdateComment);
+    @PostMapping("/{adId}/comments")
+    public ResponseEntity<CommentDTO> addComment(
+            @PathVariable Integer adId,
+            @RequestBody CreateOrUpdateComment comment) {
+        // Заглушка для добавления комментария
+        CommentDTO commentDTO = new CommentDTO();
+        commentDTO.setPk(1);
+        commentDTO.setText(comment.getText());
+        commentDTO.setAuthor(1);
+        commentDTO.setAuthorFirstName("Иван");
+        commentDTO.setAuthorImage("/images/user1.jpg");
+        commentDTO.setCreatedAt(System.currentTimeMillis());
+        return ResponseEntity.ok(commentDTO);
     }
 
-    //Удаление комментария
     @DeleteMapping("/{adId}/comments/{commentId}")
-    public void deleteComment(@PathVariable("adId") Integer adId, @PathVariable("commentId") Integer commentId) {
-        logger.info("delete comment");
-        commentService.deleteComment(adId,commentId);
+    public ResponseEntity<Void> deleteComment(
+            @PathVariable Integer adId,
+            @PathVariable Integer commentId) {
+        // Заглушка для удаления комментария
+        return ResponseEntity.ok().build();
     }
 
-    //Обновление комментария
-    @PutMapping("/{adId}/comments/{commentId}")
-    public void updateComment(@PathVariable("adId") Integer adId, @PathVariable("commentId") Integer commentId) {
-        logger.info("update comment");
-        commentService.updateComment(adId,commentId);
+    @PatchMapping("/{adId}/comments/{commentId}")
+    public ResponseEntity<CommentDTO> updateComment(
+            @PathVariable Integer adId,
+            @PathVariable Integer commentId,
+            @RequestBody CreateOrUpdateComment comment) {
+        // Заглушка для обновления комментария
+        CommentDTO commentDTO = new CommentDTO();
+        commentDTO.setPk(commentId);
+        commentDTO.setText(comment.getText());
+        commentDTO.setAuthor(1);
+        commentDTO.setAuthorFirstName("Иван");
+        commentDTO.setAuthorImage("/images/user1.jpg");
+        commentDTO.setCreatedAt(System.currentTimeMillis());
+        return ResponseEntity.ok(commentDTO);
     }
 }

@@ -2,67 +2,104 @@ package ru.skypro.homework.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.skypro.homework.dto.ads.AdDTO;
 import ru.skypro.homework.dto.ads.Ads;
 import ru.skypro.homework.dto.ads.CreateOrUpdateAd;
 import ru.skypro.homework.dto.ads.ExtendedAd;
-import ru.skypro.homework.service.AdsService;
+
+import java.io.IOException;
+import java.util.Collections;
 
 @Slf4j
 @CrossOrigin(value = "http://localhost:3000")
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/ads")
+@RequestMapping("/api/ads")
 public class AdsController {
 
-    private final AdsService adsService;
-
-    //Получение всех объявлений
-    @GetMapping()
-    public Ads getAllAds() {
-        return adsService.getAllAds();
+    @GetMapping
+    public ResponseEntity<Ads> getAllAds() {
+        // Заглушка для получения всех объявлений
+        Ads ads = new Ads();
+        ads.setCount(0);
+        ads.setResults(Collections.emptyList());
+        return ResponseEntity.ok(ads);
     }
 
-    //Добавление объявлений
-    @PostMapping(value = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public AdDTO addAd(@RequestParam("properties") CreateOrUpdateAd createAd, @RequestParam("image")
-    MultipartFile image) {
-        return adsService.addAd(createAd, image);
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<AdDTO> addAd(
+            @RequestPart("properties") CreateOrUpdateAd properties,
+            @RequestPart("image") MultipartFile image) {
+        // Заглушка для добавления объявления
+        AdDTO ad = new AdDTO();
+        ad.setPk(1);
+        ad.setTitle(properties.getTitle());
+        ad.setPrice(properties.getPrice());
+        ad.setAuthor(1);
+        ad.setImage("/images/ads/1.jpg");
+        return ResponseEntity.status(HttpStatus.CREATED).body(ad);
     }
 
-    //Получение информации об объявление
     @GetMapping("/{id}")
-    public ExtendedAd getAds(@PathVariable int id) {
-        return adsService.getAds(id);
+    public ResponseEntity<ExtendedAd> getAd(@PathVariable Integer id) {
+        // Заглушка для получения объявления
+        ExtendedAd ad = new ExtendedAd();
+        ad.setPk(id);
+        ad.setTitle("Пример объявления");
+        ad.setPrice(1000);
+        ad.setDescription("Пример описания");
+        ad.setAuthorFirstName("Иван");
+        ad.setAuthorLastName("Иванов");
+        ad.setEmail("user@example.com");
+        ad.setPhone("+7(123)456-78-90");
+        ad.setImage("/images/ads/1.jpg");
+        return ResponseEntity.ok(ad);
     }
 
-    //Удаление объявления
     @DeleteMapping("/{id}")
-    public void removeAd(@PathVariable int id) {
-        adsService.removeAd(id);
+    public ResponseEntity<Void> deleteAd(@PathVariable Integer id) {
+        // Заглушка для удаления объявления
+        return ResponseEntity.noContent().build();
     }
-
-    //Обновление информации об объявлении
     @PatchMapping("/{id}")
-    public AdDTO updateAds(@PathVariable int id,
-                           @RequestBody CreateOrUpdateAd updateAd) {
-        return adsService.updateAds(id, updateAd);
+    public ResponseEntity<AdDTO> updateAd(
+            @PathVariable Integer id,
+            @RequestBody CreateOrUpdateAd updateAd) {
+        // Заглушка для обновления объявления
+        AdDTO ad = new AdDTO();
+        ad.setPk(id);
+        ad.setTitle(updateAd.getTitle());
+        ad.setPrice(updateAd.getPrice());
+        ad.setAuthor(1);
+        ad.setImage("/images/ads/" + id + ".jpg");
+        return ResponseEntity.ok(ad);
     }
 
-    //Получение объявлений авторизованного пользователя
-    @GetMapping("/me")
-    public Ads getAdsMe() {
-        return adsService.getAdsMe();
+    @GetMapping("/my")
+    public ResponseEntity<Ads> getMyAds() {
+        // Заглушка для получения объявлений пользователя
+        Ads ads = new Ads();
+        ads.setCount(0);
+        ads.setResults(Collections.emptyList());
+        return ResponseEntity.ok(ads);
     }
 
-    //Обновление картинки объявления
-    @PatchMapping(value = "/{id}/image", consumes =
-            MediaType.MULTIPART_FORM_DATA_VALUE)
-    public String updateImage(@PathVariable int id, @RequestParam("image") MultipartFile image) {
-        return adsService.updateImage(id, image);
+    @PatchMapping(value = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<byte[]> updateAdImage(
+            @PathVariable Integer id,
+            @RequestParam("image") MultipartFile image) {
+        // Заглушка для обновления изображения объявления
+        try {
+            return ResponseEntity.ok(image.getBytes());
+        } catch (IOException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
+
+
 }
-

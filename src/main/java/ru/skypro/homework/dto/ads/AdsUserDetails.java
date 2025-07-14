@@ -4,35 +4,31 @@ import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import ru.skypro.homework.entity.Users;
+import ru.skypro.homework.dto.Role;
+import ru.skypro.homework.dto.User;
 
 import java.util.Collection;
 import java.util.Collections;
-
-import static ru.skypro.homework.dto.Role.ADMIN;
-import static ru.skypro.homework.dto.Role.USER;
 
 @Getter
 public class AdsUserDetails implements UserDetails {
     private final Integer id;
     private final String username;
     private final String password;
-    private final boolean isAdmin;
+    private final Role role;
 
-    public AdsUserDetails(Integer id, String username, String password, boolean isAdmin) {
-        this.id = id;
-        this.username = username;
-        this.password = password;
-        this.isAdmin = isAdmin;
+    public AdsUserDetails(User user) {
+        this.id = user.getId();
+        this.username = user.getEmail();
+        this.password = user.getPassword();
+        this.role = user.getRole();
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        SimpleGrantedAuthority authority =
-                isAdmin
-                        ? new SimpleGrantedAuthority(ADMIN.toString())
-                        : new SimpleGrantedAuthority(USER.toString());
-        return Collections.singleton(authority);
+        return Collections.singleton(
+                new SimpleGrantedAuthority("ROLE_" + role.name())
+        );
     }
 
     @Override
@@ -63,10 +59,5 @@ public class AdsUserDetails implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
-    }
-
-    public static AdsUserDetails from(Users user) {
-        boolean isAdminForUser = user.getRole() == ADMIN;
-        return new AdsUserDetails(user.getId(), user.getUsername(), user.getPassword(), isAdminForUser);
     }
 }
