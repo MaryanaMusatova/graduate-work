@@ -1,4 +1,4 @@
-package ru.skypro.homework.service;
+/*package ru.skypro.homework.service;
 
 import org.springframework.web.multipart.MultipartFile;
 import ru.skypro.homework.dto.ads.AdDTO;
@@ -16,3 +16,5 @@ public interface AdsService {
     String updateImage(int id,MultipartFile image);
 
 }
+
+ */

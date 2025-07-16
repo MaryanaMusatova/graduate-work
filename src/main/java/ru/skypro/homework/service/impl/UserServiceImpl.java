@@ -1,4 +1,4 @@
-package ru.skypro.homework.service.impl;
+/*package ru.skypro.homework.service.impl;
 
 
 import ru.skypro.homework.dto.Role;
@@ -25,3 +25,6 @@ public class UserServiceImpl {
         this.usersRepository = usersRepository;
     }
 }
+
+
+ */

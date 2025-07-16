@@ -1,4 +1,4 @@
-package ru.skypro.homework.service.impl;
+/*package ru.skypro.homework.service.impl;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -74,3 +74,6 @@ public class AdsServiceImpl implements AdsService {
         return null;
     }
 }
+
+
+ */

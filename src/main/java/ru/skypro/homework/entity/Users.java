@@ -1,4 +1,4 @@
-package ru.skypro.homework.entity;
+/*package ru.skypro.homework.entity;
 
 import lombok.*;
 //import com.example.exampleforgraduatework.dto.Role;
@@ -22,3 +22,5 @@ public class Users {
     private String phone;
     private Role role;
 }
+
+ */

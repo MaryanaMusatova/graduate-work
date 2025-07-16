@@ -1,3 +1,4 @@
+/*
 package ru.skypro.homework.entity;
 
 import lombok.AllArgsConstructor;
@@ -49,3 +50,6 @@ public class Comment {
 
 
 }
+
+
+ */

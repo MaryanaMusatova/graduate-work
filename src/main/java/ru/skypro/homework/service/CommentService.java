@@ -1,4 +1,4 @@
-package ru.skypro.homework.service;
+/*package ru.skypro.homework.service;
 
 import ru.skypro.homework.dto.comment.CommentDTO;
 import ru.skypro.homework.dto.comment.CreateOrUpadateComment;
@@ -16,3 +16,6 @@ public interface CommentService {
     void updateComment(Integer adId, Integer commentId);
 
 }
+
+
+ */

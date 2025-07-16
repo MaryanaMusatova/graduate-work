@@ -1,5 +1,8 @@
-package ru.skypro.homework.exception;
+/*package ru.skypro.homework.exception;
 
 public class WrongCurrentPasswordException extends RuntimeException {
 
 }
+
+
+ */

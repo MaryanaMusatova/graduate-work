@@ -1,4 +1,4 @@
-package ru.skypro.homework.service.impl;
+/*package ru.skypro.homework.service.impl;
 
 import org.springframework.stereotype.Service;
 import ru.skypro.homework.dto.comment.CommentDTO;
@@ -31,3 +31,6 @@ public class CommentServiceImpl implements CommentService {
     }
 
 }
+
+
+ */

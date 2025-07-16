@@ -1,4 +1,4 @@
-package ru.skypro.homework.repository;
+/*package ru.skypro.homework.repository;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -20,3 +20,6 @@ public interface CommentRepository extends CrudRepository<Comment, Integer> {
     List<Comment> findCommentBycommentId(Integer pk);
 
 }
+
+
+ */
