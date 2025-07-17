@@ -1,4 +1,4 @@
-/*
+
 package ru.skypro.homework.entity;
 
 
@@ -18,10 +18,11 @@ public class Image {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "image_id",nullable = false)
-    private int imageId; //id картинки
+    private Integer id; //id картинки
 
-    private byte[] image;
+    @Lob
+    @Column(nullable = false)
+    private byte[] data;
+    private String mediaType;
 }
 
-
- */
