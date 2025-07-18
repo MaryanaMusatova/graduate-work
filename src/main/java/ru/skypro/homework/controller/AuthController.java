@@ -1,38 +1,66 @@
 package ru.skypro.homework.controller;
 
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import ru.skypro.homework.dto.Login;
 import ru.skypro.homework.dto.Register;
+import ru.skypro.homework.entity.Users;
+import ru.skypro.homework.mapper.AppMapper;
+import ru.skypro.homework.repository.UsersRepository;
 
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor
 public class AuthController {
+    private final UsersRepository userRepository;
+    private final AppMapper appMapper;
+    private final PasswordEncoder passwordEncoder;
 
-    private final String TEST_USERNAME = "user@example.com";
-    private  String TEST_PASSWORD = "password";
-
-    // Авторизация (соответствует /login из OpenAPI)
     @PostMapping("/login")
+    @Operation(
+            summary = "Авторизация пользователя",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Успешная авторизация"),
+                    @ApiResponse(responseCode = "401", description = "Неверные учетные данные",
+                            content = @Content(schema = @Schema(hidden = true)))
+            }
+    )
     public ResponseEntity<?> login(@RequestBody Login login) {
-        if (TEST_USERNAME.equals(login.getUsername()) &&
-                TEST_PASSWORD.equals(login.getPassword())) {
-            // Генерация и возврат токена
-            return ResponseEntity.ok().build();
+        Users user = userRepository.findByEmail(login.getUsername())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+
+        if (!passwordEncoder.matches(login.getPassword(), user.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid password");
         }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        return ResponseEntity.ok().build();
     }
 
-    // Регистрация (соответствует /register из OpenAPI)
     @PostMapping("/register")
+    @Operation(
+            summary = "Регистрация нового пользователя",
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Пользователь зарегистрирован"),
+                    @ApiResponse(responseCode = "400", description = "Пользователь уже существует")
+            }
+    )
     public ResponseEntity<?> register(@RequestBody Register register) {
-        if (register.getPassword().length() < 8) {
-            return ResponseEntity.badRequest().body("Пароль должен быть не менее 8 символов");
+        if (userRepository.existsByEmail(register.getUsername())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email already exists");
         }
-        return ResponseEntity.status(201).build();
+
+        Users user = appMapper.registerToUser(register);  // Изменено с registerToUserEntity на registerToUser
+        user.setPassword(passwordEncoder.encode(register.getPassword()));
+        userRepository.save(user);
+
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }

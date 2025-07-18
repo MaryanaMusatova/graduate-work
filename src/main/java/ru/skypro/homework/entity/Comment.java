@@ -1,11 +1,12 @@
-/*
+
 package ru.skypro.homework.entity;
 
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.*;
+
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -19,11 +20,11 @@ public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "comment_id",nullable = false)
-    Integer pk;
+    private Integer id;
 
     @ManyToOne  (fetch = FetchType.EAGER)
     @JoinColumn (name = "author_id")
-    private Users users;
+    private Users author;
 
     @ManyToOne  (fetch = FetchType.EAGER)
     @JoinColumn (name = "ad_id")
@@ -40,16 +41,15 @@ public class Comment {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Comment comment = (Comment) o;
-        return Objects.equals(pk, comment.pk) && Objects.equals(createdAt, comment.createdAt) && Objects.equals(text, comment.text);
+        return Objects.equals(id, comment.id) && Objects.equals(createdAt, comment.createdAt) && Objects.equals(text, comment.text);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(pk, createdAt, text);
+        return Objects.hash(id, createdAt, text);
     }
 
 
 }
 
 
- */

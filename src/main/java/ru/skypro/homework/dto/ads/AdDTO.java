@@ -10,7 +10,7 @@ import java.util.PrimitiveIterator;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AdDTO {
-    private int author;
+    private Integer author;
     private String image;
     private int pk;
     private int price;

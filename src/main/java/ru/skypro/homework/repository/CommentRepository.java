@@ -1,25 +1,16 @@
-/*package ru.skypro.homework.repository;
+package ru.skypro.homework.repository;
 
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import ru.skypro.homework.entity.Comment;
 
 import java.util.List;
+import java.util.Optional;
 
-public interface CommentRepository extends CrudRepository<Comment, Integer> {
+public interface CommentRepository extends JpaRepository<Comment, Integer> {
+    List<Comment> findAllByAdId(Integer adId);
 
-    @Query(value = "SELECT * FROM comments",
-            nativeQuery = true)
-    List<Comment> findAllComments();
+    void deleteByIdAndAdId(Integer commentId, Integer adId);
 
-    @Query(value = "SELECT * FROM comments " +
-            "WHERE author_id= :author", nativeQuery = true)
-    List<Comment> findAllCommentByAuthor(Integer author);
-
-    @Query(value = "SELECT * FROM comment WHERE comment_id= :pk", nativeQuery = true)
-    List<Comment> findCommentBycommentId(Integer pk);
-
+    Optional<Comment> findByIdAndAdId(Integer commentId, Integer adId);
 }
 
-
- */
