@@ -1,92 +1,65 @@
+// src/main/java/ru/skypro/homework/config/SecurityConfig.java
 package ru.skypro.homework.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.JdbcUserDetailsManager;
 
-import java.util.Arrays;
-import java.util.List;
+import javax.sql.DataSource;
 
 @Configuration
-@EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
-    @Value("${app.auth.default-username}")
-    private String username;
+    private final DataSource dataSource;
 
-    @Value("${app.auth.default-password}")
-    private String password;
-
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-
-                .authorizeHttpRequests(auth -> auth
-                        // Публичные эндпоинты
-                        .requestMatchers(
-                                "/",
-                                "/swagger-ui.html",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/swagger-resources/**",
-                                "/webjars/**"
-                        ).permitAll()
-
-                        // API Auth
-                        .requestMatchers(HttpMethod.POST,
-                                "/api/auth/login",
-                                "/api/auth/register"
-                        ).permitAll()
-
-                        // Публичные GET-запросы
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/ads",
-                                "/api/ads/*",
-                                "/api/ads/*/comments"
-                        ).permitAll()
-
-                        // Все остальные запросы требуют аутентификации
-                        .anyRequest().authenticated()
-                )
-
-                .csrf(csrf -> csrf.disable())
-                .httpBasic(basic -> basic.init(http));
-
-        return http.build();
+    public SecurityConfig(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     @Bean
-    CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
-        configuration.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE","PATCH","OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring()
+                .requestMatchers("/css/**", "/js/**");
     }
 
     @Bean
-    public UserDetailsService userDetailsService() {
-        UserDetails user = User.builder()
-                .username(username)
-                .password("{noop}" + password)
-                .roles("USER")
-                .build();
-        return new InMemoryUserDetailsManager(user);
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(jdbcUserDetailsManager());
+        authProvider.setPasswordEncoder(passwordEncoder());
+        return authProvider;
+    }
+
+    @Bean
+    public JdbcUserDetailsManager jdbcUserDetailsManager() {
+        JdbcUserDetailsManager userDetailsManager = new JdbcUserDetailsManager(dataSource);
+        return userDetailsManager;
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.authenticationProvider(authenticationProvider());
+    }
+
+    protected void configure(HttpSecurity http) throws Exception {
+        http.csrf().disable()
+                .authorizeHttpRequests((authz) -> authz
+                        .requestMatchers("/ads").permitAll()
+                        .anyRequest().authenticated())
+                .formLogin(form -> form.loginPage("/login"))
+                .logout(logout -> logout.logoutSuccessUrl("/"));
     }
 }

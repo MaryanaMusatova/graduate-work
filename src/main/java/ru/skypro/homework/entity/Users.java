@@ -1,26 +1,49 @@
-/*package ru.skypro.homework.entity;
+package ru.skypro.homework.entity;
 
-import lombok.*;
-//import com.example.exampleforgraduatework.dto.Role;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import ru.skypro.homework.dto.Role;
 
-import javax.persistence.Table;
+import java.util.List;
 
+@Entity
+@Table(name = "users")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "users")
-//этот класс станет entity
 public class Users {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    private String email;
-    private String image;
-    private String username;
-    private String password;
-    private String firstName;
-    private String lastName;
-    private String phone;
-    private Role role;
-}
 
- */
+    @Column(nullable = false, unique = true, length = 32)
+    private String email;
+
+    @Column(nullable = false, length = 16)
+    private String password;
+
+    @Column(name = "first_name", nullable = false, length = 16)
+    private String firstName;
+
+    @Column(name = "last_name", nullable = false, length = 16)
+    private String lastName;
+
+    @Column(nullable = false, length = 20)
+    private String phone;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 5)
+    private Role role;
+
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "image_id")
+    private Image image;
+
+    @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
+    private List<Ad> ads;
+
+    @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
+    private List<Comment> comments;
+}
