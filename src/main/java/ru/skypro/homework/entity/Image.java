@@ -1,28 +1,24 @@
-
 package ru.skypro.homework.entity;
 
-
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Entity
 @Table(name = "image")
 public class Image {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "image_id",nullable = false)
-    private Integer id; //id картинки
-    @Column(name = "file_path")
-    private String filePath;
+    @Column(name = "image_id")
+    private Integer id;
+
     @Lob
     @Column(nullable = false)
     private byte[] data;
+
+    @Column(name = "media_type", length = 50)
     private String mediaType;
+
+    @Column(name = "file_path", length = 255)
+    private String filePath;
 }

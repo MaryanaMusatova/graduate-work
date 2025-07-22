@@ -51,17 +51,17 @@ databaseChangeLog:
                     unique: true
               - column:
                   name: password
-                  type: varchar(16)
+                  type: varchar(100)  # Увеличено для хранения хэша пароля
                   constraints:
                     nullable: false
               - column:
                   name: first_name
-                  type: varchar(16)
+                  type: varchar(32)  # Увеличено с 16 до 32
                   constraints:
                     nullable: false
               - column:
                   name: last_name
-                  type: varchar(16)
+                  type: varchar(32)  # Увеличено с 16 до 32
                   constraints:
                     nullable: false
               - column:
@@ -71,7 +71,7 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: role
-                  type: varchar(5)
+                  type: varchar(10)  # Увеличено с 5 до 10
                   constraints:
                     nullable: false
 

@@ -4,15 +4,18 @@ import lombok.Data;
 
 @Data
 public class Register {
-    private String username;      // Логин (4-32 символа)
-    private String password;      // Пароль (8-16 символов)
-    private String email;
-    private String firstName;     // Имя (2-16 символов)
-    private String lastName;      // Фамилия (2-16 символов)
-    private String phone;         // Формат +7 (XXX) XXX-XX-XX
-    private Role role;            // Enum: USER, ADMIN
+    private String username;
+    private String password;
+    private String firstName;
+    private String lastName;
+    private String phone;
+    private Role role;
 
     public String getEmail() {
-        return email;
+        return username; // username и email - одно и то же в нашей системе
+    }
+
+    public void setRoleFromString(String roleValue) {
+        this.role = Role.fromString(roleValue);
     }
 }

@@ -15,34 +15,33 @@ import java.util.List;
 @Entity
 @Table(name = "ads")
 public class Ad {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ad_id",nullable = false)
-    private Integer id; //id объявления
+    @Column(name = "ad_id", nullable = false)
+    private Integer id;
 
     @Max(32)
     @Min(4)
-    @Column(name = "title", nullable = false)
-    private String title; //заголовок объявления
+    @Column(name = "title", nullable = false, length = 32)
+    private String title;
 
     @Max(10000000)
     @Column(name = "price", nullable = false)
-    private Integer price; //цена объявления
+    private Integer price;
 
     @Max(64)
     @Min(8)
-    @Column(name="description")
-    private String description; // описание объявления
+    @Column(name = "description", length = 64)
+    private String description;
 
     @ManyToOne
     @JoinColumn(name = "author_id")
-    private Users author; //id автора объявления
+    private Users author;
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "image_id")
-    private Image image; //картинка объявления
+    private Image image;
 
     @OneToMany(mappedBy = "ad", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    private List<Comment> comments; //комментарии к объявлению
+    private List<Comment> comments;
 }
