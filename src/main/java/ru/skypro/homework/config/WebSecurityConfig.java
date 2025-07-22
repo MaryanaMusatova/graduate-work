@@ -6,10 +6,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,9 +31,9 @@ public class WebSecurityConfig implements WebMvcConfigurer {
             "/swagger-ui.html",
             "/v3/api-docs/**",
             "/webjars/**",
-            "/login",
-            "/register",
-            "/ads"
+            "/api/auth/**",  // Разрешаем регистрацию/логин
+            "/ads/image/**", // Разрешаем доступ к изображениям
+            "/users/image/**"
     };
 
     private final DataSource dataSource;
@@ -53,30 +51,9 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                         .requestMatchers(AUTH_WHITELIST).permitAll()
                         .requestMatchers("/ads/**", "/users/**").authenticated()
                 )
-                .httpBasic(withDefaults())
-                .formLogin(form -> form
-                        .loginPage("/login")
-                        .permitAll()
-                )
-                .logout(logout -> logout
-                        .logoutSuccessUrl("/")
-                        .permitAll()
-                );
+                .httpBasic(withDefaults());  // Только Basic Auth
 
         return http.build();
-    }
-
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        return web -> web.ignoring().requestMatchers("/css/**", "/js/**", "/images/**");
-    }
-
-    @Bean
-    public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(jdbcUserDetailsManager());
-        authProvider.setPasswordEncoder(passwordEncoder());
-        return authProvider;
     }
 
     @Bean
