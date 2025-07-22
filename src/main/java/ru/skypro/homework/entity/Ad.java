@@ -46,4 +46,3 @@ public class Ad {
     @OneToMany(mappedBy = "ad", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<Comment> comments; //комментарии к объявлению
 }
-

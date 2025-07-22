@@ -19,10 +19,10 @@ public class Image {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "image_id",nullable = false)
     private Integer id; //id картинки
-
+    @Column(name = "file_path")
+    private String filePath;
     @Lob
     @Column(nullable = false)
     private byte[] data;
     private String mediaType;
 }
-

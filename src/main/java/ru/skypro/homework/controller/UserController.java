@@ -14,7 +14,7 @@ import ru.skypro.homework.dto.UpdateUser;
 import ru.skypro.homework.dto.User;
 import ru.skypro.homework.entity.Image;
 import ru.skypro.homework.entity.Users;
-import ru.skypro.homework.mapper.AppMapper;
+import ru.skypro.homework.mapper.UserMapper;
 import ru.skypro.homework.repository.ImageRepository;
 import ru.skypro.homework.repository.UsersRepository;
 
@@ -27,7 +27,7 @@ import java.io.IOException;
 public class UserController {
     private final UsersRepository userRepository;
     private final ImageRepository imageRepository;
-    private final AppMapper appMapper;
+    private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
     @PostMapping("/set_password")
@@ -49,7 +49,7 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<User> getUser(Authentication authentication) {
         Users user = (Users) authentication.getPrincipal();
-        User userDto = appMapper.userEntityToUserDTO(user);
+        User userDto = userMapper.userEntityToUserDTO(user);
         if (user.getImage() != null) {
             userDto.setImage("/images/" + user.getImage().getId());
         }

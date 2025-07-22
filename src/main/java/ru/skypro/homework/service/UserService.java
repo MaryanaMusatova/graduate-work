@@ -1,12 +1,11 @@
-/*package ru.skypro.homework.service;
+package ru.skypro.homework.service;
 
-import org.apache.catalina.User;
-import ru.skypro.homework.dto.comment.UpdateUser;
+import ru.skypro.homework.dto.User;
+import ru.skypro.homework.dto.UpdateUser;
 
 public interface UserService {
-    User getInformation();
-    UpdateUser updateInformationAboutUser(UpdateUser updateUser);
-    void UpdateImage(String image);
+    User getCurrentUserInfo();
+    User updateUserInfo(UpdateUser updateUser);
+    void setUserImage(String imageUrl); // Принимает URL/путь к изображению
+    boolean registerUser(ru.skypro.homework.dto.Register registerForm);
 }
-
- */

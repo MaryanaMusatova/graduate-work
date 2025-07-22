@@ -13,7 +13,7 @@ import org.springframework.web.server.ResponseStatusException;
 import ru.skypro.homework.dto.Login;
 import ru.skypro.homework.dto.Register;
 import ru.skypro.homework.entity.Users;
-import ru.skypro.homework.mapper.AppMapper;
+import ru.skypro.homework.mapper.UserMapper;
 import ru.skypro.homework.repository.UsersRepository;
 
 @RestController
@@ -21,7 +21,7 @@ import ru.skypro.homework.repository.UsersRepository;
 @RequiredArgsConstructor
 public class AuthController {
     private final UsersRepository userRepository;
-    private final AppMapper appMapper;
+    private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
     @PostMapping("/login")
@@ -57,7 +57,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email already exists");
         }
 
-        Users user = appMapper.registerToUser(register);  // Изменено с registerToUserEntity на registerToUser
+        Users user = userMapper.registerToUser(register);
         user.setPassword(passwordEncoder.encode(register.getPassword()));
         userRepository.save(user);
 

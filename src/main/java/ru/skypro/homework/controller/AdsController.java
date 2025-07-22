@@ -16,7 +16,8 @@ import ru.skypro.homework.dto.ads.ExtendedAd;
 import ru.skypro.homework.entity.Ad;
 import ru.skypro.homework.entity.Image;
 import ru.skypro.homework.entity.Users;
-import ru.skypro.homework.mapper.AppMapper;
+import ru.skypro.homework.mapper.AdMapper;
+import ru.skypro.homework.mapper.ImageMapper;
 import ru.skypro.homework.repository.AdRepository;
 import ru.skypro.homework.repository.ImageRepository;
 import ru.skypro.homework.repository.UsersRepository;
@@ -33,14 +34,15 @@ public class AdsController {
     private final AdRepository adRepository;
     private final UsersRepository usersRepository;
     private final ImageRepository imageRepository;
-    private final AppMapper appMapper;
+    private final AdMapper adMapper;
+    private final ImageMapper imageMapper;
 
     @GetMapping
     public ResponseEntity<Ads> getAllAds() {
         List<AdDTO> adDTOs = adRepository.findAll().stream()
                 .map(ad -> {
-                    AdDTO dto = appMapper.adEntityToAdDTO(ad);
-                    dto.setImage(appMapper.convertImageToPath(ad.getImage()));
+                    AdDTO dto = adMapper.adEntityToAdDTO(ad);
+                    dto.setImage(imageMapper.convertImageToPath(ad.getImage()));
                     return dto;
                 })
                 .collect(Collectors.toList());
@@ -60,7 +62,7 @@ public class AdsController {
         Users author = usersRepository.findById(((Users) authentication.getPrincipal()).getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
 
-        Ad ad = appMapper.createOrUpdateAdToAdEntity(properties);
+        Ad ad = adMapper.createOrUpdateAdToAdEntity(properties);
         ad.setAuthor(author);
 
         Image image = new Image();
@@ -71,8 +73,8 @@ public class AdsController {
 
         Ad savedAd = adRepository.save(ad);
 
-        AdDTO adDTO = appMapper.adEntityToAdDTO(savedAd);
-        adDTO.setImage(appMapper.convertImageToPath(savedImage));
+        AdDTO adDTO = adMapper.adEntityToAdDTO(savedAd);
+        adDTO.setImage(imageMapper.convertImageToPath(savedImage));
 
         return ResponseEntity.status(HttpStatus.CREATED).body(adDTO);
     }
@@ -82,8 +84,8 @@ public class AdsController {
         Ad ad = adRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        ExtendedAd extendedAd = appMapper.adEntityToExtendedAd(ad);
-        extendedAd.setImage(appMapper.convertImageToPath(ad.getImage()));
+        ExtendedAd extendedAd = adMapper.adEntityToExtendedAd(ad);
+        extendedAd.setImage(imageMapper.convertImageToPath(ad.getImage()));
 
         return ResponseEntity.ok(extendedAd);
     }
@@ -115,8 +117,8 @@ public class AdsController {
 
         Ad updatedAd = adRepository.save(ad);
 
-        AdDTO adDTO = appMapper.adEntityToAdDTO(updatedAd);
-        adDTO.setImage(appMapper.convertImageToPath(updatedAd.getImage()));
+        AdDTO adDTO = adMapper.adEntityToAdDTO(updatedAd);
+        adDTO.setImage(imageMapper.convertImageToPath(updatedAd.getImage()));
 
         return ResponseEntity.ok(adDTO);
     }
@@ -126,8 +128,8 @@ public class AdsController {
         Users author = (Users) authentication.getPrincipal();
         List<AdDTO> adDTOs = adRepository.findAllByAuthorId(author.getId()).stream()
                 .map(ad -> {
-                    AdDTO dto = appMapper.adEntityToAdDTO(ad);
-                    dto.setImage(appMapper.convertImageToPath(ad.getImage()));
+                    AdDTO dto = adMapper.adEntityToAdDTO(ad);
+                    dto.setImage(imageMapper.convertImageToPath(ad.getImage()));
                     return dto;
                 })
                 .collect(Collectors.toList());

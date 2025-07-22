@@ -1,5 +1,5 @@
 databaseChangeLog:
-  # 1. Сначала создаем таблицу image (без внешних зависимостей)
+  # 1. Создаем таблицу image с file_path
   - changeSet:
       id: 1
       author: skypro
@@ -22,6 +22,11 @@ databaseChangeLog:
               - column:
                   name: media_type
                   type: varchar(50)
+              - column:
+                  name: file_path
+                  type: varchar(255)
+                  constraints:
+                    nullable: true
 
   # 2. Создаем таблицу users (пока без image_id)
   - changeSet:
