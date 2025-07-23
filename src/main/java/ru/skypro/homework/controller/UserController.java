@@ -24,6 +24,7 @@ import java.io.IOException;
 @RequestMapping("/users")
 @RequiredArgsConstructor
 @Transactional
+@CrossOrigin("http://localhost:3000/")
 public class UserController {
     private final UsersRepository userRepository;
     private final ImageRepository imageRepository;

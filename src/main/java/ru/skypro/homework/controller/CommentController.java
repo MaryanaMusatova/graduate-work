@@ -13,6 +13,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/ads")
 @RequiredArgsConstructor
+@CrossOrigin("http://localhost:3000/")
 public class CommentController {
 
     private final CommentService commentService;

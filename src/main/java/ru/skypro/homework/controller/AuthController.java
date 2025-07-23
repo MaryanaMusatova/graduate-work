@@ -10,10 +10,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import ru.skypro.homework.dto.Login;
 import ru.skypro.homework.dto.Register;
@@ -28,8 +25,8 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/auth")
 @RequiredArgsConstructor
+@CrossOrigin("http://localhost:3000/")
 public class AuthController {
     private final UsersRepository userRepository;
     private final UserMapper userMapper;
@@ -39,6 +36,7 @@ public class AuthController {
     @PostMapping("/login")
     @Operation(
             summary = "Авторизация пользователя",
+            tags = {"Авторизация"},
             responses = {
                     @ApiResponse(responseCode = "200", description = "Успешная авторизация"),
                     @ApiResponse(responseCode = "401", description = "Неверные учетные данные",

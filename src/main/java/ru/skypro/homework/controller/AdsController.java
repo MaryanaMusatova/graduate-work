@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/ads")
 @RequiredArgsConstructor
 @Transactional
+@CrossOrigin("http://localhost:3000/")
 public class AdsController {
     private final AdRepository adRepository;
     private final UsersRepository usersRepository;
