@@ -8,14 +8,15 @@ import ru.skypro.homework.dto.ads.CreateOrUpdateAd;
 import ru.skypro.homework.dto.ads.ExtendedAd;
 import ru.skypro.homework.entity.Ad;
 import ru.skypro.homework.entity.Image;
+import ru.skypro.homework.entity.Users;
 
 @Mapper(componentModel = "spring")
 public interface AdMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "image", ignore = true)
-    @Mapping(target = "author", ignore = true)
-    Ad createOrUpdateAdToAdEntity(CreateOrUpdateAd createOrUpdateAd);
+    @Mapping(target = "author", source = "author")
+    Ad createOrUpdateAdToAdEntity(CreateOrUpdateAd createOrUpdateAd, Users author);
 
     @Mapping(source = "id", target = "pk")
     @Mapping(source = "author.id", target = "author")
@@ -35,9 +36,6 @@ public interface AdMapper {
 
     @Named("imageToString")
     default String imageToString(Image image) {
-        if (image == null) {
-            return null;
-        }
-        return "/images/" + image.getId();
+        return image != null ? "/images/" + image.getId() : null;
     }
 }

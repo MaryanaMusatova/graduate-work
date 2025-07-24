@@ -1,9 +1,14 @@
 package ru.skypro.homework.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 
-@Data
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "image")
 public class Image {
@@ -21,4 +26,5 @@ public class Image {
 
     @Column(name = "file_path", length = 255)
     private String filePath;
+
 }

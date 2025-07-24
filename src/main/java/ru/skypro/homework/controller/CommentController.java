@@ -8,6 +8,7 @@ import ru.skypro.homework.dto.comment.CommentDTO;
 import ru.skypro.homework.dto.comment.Comments;
 import ru.skypro.homework.dto.comment.CreateOrUpdateComment;
 import ru.skypro.homework.service.CommentService;
+
 import java.util.List;
 
 @RestController
@@ -32,14 +33,17 @@ public class CommentController {
             @PathVariable Integer adId,
             @RequestBody CreateOrUpdateComment comment,
             Authentication authentication) {
-        return ResponseEntity.ok(commentService.addComment(adId, comment, authentication));
+        String username = authentication.getName();
+        return ResponseEntity.ok(commentService.addComment(adId, comment, username));
     }
 
     @DeleteMapping("/{adId}/comments/{commentId}")
     public ResponseEntity<Void> deleteComment(
             @PathVariable Integer adId,
-            @PathVariable Integer commentId) {
-        commentService.deleteComment(adId, commentId);
+            @PathVariable Integer commentId,
+            Authentication authentication) {
+        String username = authentication.getName();
+        commentService.deleteComment(adId, commentId, username);
         return ResponseEntity.ok().build();
     }
 
@@ -47,7 +51,9 @@ public class CommentController {
     public ResponseEntity<CommentDTO> updateComment(
             @PathVariable Integer adId,
             @PathVariable Integer commentId,
-            @RequestBody CreateOrUpdateComment comment) {
-        return ResponseEntity.ok(commentService.editComment(adId, commentId, comment));
+            @RequestBody CreateOrUpdateComment comment,
+            Authentication authentication) {
+        String username = authentication.getName();
+        return ResponseEntity.ok(commentService.editComment(adId, commentId, comment, username));
     }
 }

@@ -8,8 +8,9 @@ import ru.skypro.homework.entity.Users;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
-    @Mapping(source = "username", target = "email") // Маппинг username -> email
-    @Mapping(source = "role", target = "role")
+
+    @Mapping(source = "username", target = "email")
+    @Mapping(target = "role", defaultValue = "USER")
     Users registerToUser(Register register);
 
     @Mapping(source = "email", target = "email")

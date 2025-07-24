@@ -1,9 +1,15 @@
 package ru.skypro.homework.dto.comment;
 
 
-import lombok.Data;
+import lombok.*;
 
-@Data
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode
+@NoArgsConstructor
+@AllArgsConstructor
+
 public class CreateOrUpdateComment {
     private String text;
 }

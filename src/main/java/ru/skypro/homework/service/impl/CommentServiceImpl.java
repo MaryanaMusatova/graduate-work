@@ -1,16 +1,20 @@
 package ru.skypro.homework.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.skypro.homework.dto.comment.CommentDTO;
 import ru.skypro.homework.dto.comment.CreateOrUpdateComment;
 import ru.skypro.homework.entity.Ad;
 import ru.skypro.homework.entity.Comment;
 import ru.skypro.homework.entity.Users;
+import ru.skypro.homework.exception.AdNotFoundException;
+import ru.skypro.homework.exception.CommentNotFoundException;
+import ru.skypro.homework.exception.ForbiddenException;
 import ru.skypro.homework.mapper.CommentMapper;
 import ru.skypro.homework.repository.AdRepository;
 import ru.skypro.homework.repository.CommentRepository;
+import ru.skypro.homework.repository.UsersRepository;
 import ru.skypro.homework.service.CommentService;
 
 import java.time.LocalDateTime;
@@ -24,8 +28,10 @@ public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
     private final AdRepository adRepository;
+    private final UsersRepository usersRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public List<CommentDTO> getCommentsForAd(Integer adId) {
         return commentRepository.findAllByAdId(adId)
                 .stream()
@@ -34,35 +40,48 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public CommentDTO addComment(Integer adId, CreateOrUpdateComment createComment, Authentication authentication) {
-        // 1. Получаем текущего пользователя
-        Users author = (Users) authentication.getPrincipal();
+    @Transactional
+    public CommentDTO addComment(Integer adId, CreateOrUpdateComment createComment, String username) {
+        Users author = usersRepository.findByEmail(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        // 2. Находим объявление по ID
         Ad ad = adRepository.findById(adId)
-                .orElseThrow(() -> new IllegalArgumentException("Ad not found"));
+                .orElseThrow(() -> new AdNotFoundException(adId));
 
-        // 3. Создаем и сохраняем комментарий
         Comment comment = new Comment();
         comment.setText(createComment.getText());
-        comment.setAd(ad); // Устанавливаем связь с объявлением
-        comment.setAuthor(author); // Устанавливаем автора
+        comment.setAd(ad);
+        comment.setAuthor(author);
         comment.setCreatedAt(LocalDateTime.now());
 
         return commentMapper.commentEntityToCommentDTO(commentRepository.save(comment));
     }
 
+
     @Override
-    public CommentDTO editComment(Integer adId, Integer commentId, CreateOrUpdateComment updateComment) {
-        Comment existingComment = commentRepository.findByIdAndAdId(commentId, adId)  // Изменено на findByIdAndAdId
-                .orElseThrow(() -> new IllegalArgumentException("Comment not found"));
+    @Transactional
+    public CommentDTO editComment(Integer adId, Integer commentId, CreateOrUpdateComment updateComment, String username) {
+        Comment existingComment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new CommentNotFoundException(commentId));
+
+        if (!existingComment.getAuthor().getEmail().equals(username)) {
+            throw new ForbiddenException("You can only edit your own comments");
+        }
+
         existingComment.setText(updateComment.getText());
         return commentMapper.commentEntityToCommentDTO(commentRepository.save(existingComment));
     }
 
-
     @Override
-    public void deleteComment(Integer adId, Integer commentId) {
-        commentRepository.deleteByIdAndAdId(commentId, adId);
+    @Transactional
+    public void deleteComment(Integer adId, Integer commentId, String username) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new CommentNotFoundException(commentId));
+
+        if (!comment.getAuthor().getEmail().equals(username)) {
+            throw new ForbiddenException("You can only delete your own comments");
+        }
+
+        commentRepository.delete(comment);
     }
 }

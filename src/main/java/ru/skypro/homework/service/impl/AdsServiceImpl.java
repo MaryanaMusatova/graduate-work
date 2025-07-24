@@ -1,81 +1,234 @@
 package ru.skypro.homework.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import ru.skypro.homework.dto.ads.AdDTO;
-import ru.skypro.homework.dto.ads.Ads;
-import ru.skypro.homework.dto.ads.CreateOrUpdateAd;
+import ru.skypro.homework.dto.ads.*;
 import ru.skypro.homework.entity.Ad;
+import ru.skypro.homework.entity.Image;
+import ru.skypro.homework.entity.Users;
+import ru.skypro.homework.exception.AdNotFoundException;
+import ru.skypro.homework.exception.ForbiddenException;
 import ru.skypro.homework.mapper.AdMapper;
+import ru.skypro.homework.mapper.ImageMapper;
 import ru.skypro.homework.repository.AdRepository;
+import ru.skypro.homework.repository.ImageRepository;
+import ru.skypro.homework.repository.UsersRepository;
 import ru.skypro.homework.service.AdsService;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdsServiceImpl implements AdsService {
 
-    private final AdRepository repository;
+    private final AdRepository adRepository;
+    private final UsersRepository usersRepository;
+    private final ImageRepository imageRepository;
     private final AdMapper adMapper;
+    private final ImageMapper imageMapper;
 
     @Override
+    @Transactional(readOnly = true)
     public Ads getAllAds() {
-        List<AdDTO> adDTOs = repository.findAll().stream()
-                .map(adMapper::adEntityToAdDTO)
+        log.info("Getting all ads");
+        List<Ad> ads = adRepository.findAll();
+
+        List<AdDTO> adDTOs = ads.stream()
+                .map(ad -> {
+                    AdDTO dto = adMapper.adEntityToAdDTO(ad);
+                    if (ad.getImage() != null) {
+                        dto.setImage("/images/" + ad.getImage().getId());
+                    }
+                    return dto;
+                })
                 .collect(Collectors.toList());
 
-        Ads response = new Ads();
-        response.setCount(adDTOs.size());
-        response.setResults(adDTOs);
-        return response;
+        log.info("Found {} ads", adDTOs.size());
+        return new Ads(adDTOs.size(), adDTOs);
     }
 
     @Override
-    public AdDTO addAd(CreateOrUpdateAd createAd, MultipartFile file) {
-        Ad entity = adMapper.createOrUpdateAdToAdEntity(createAd);
-        return adMapper.adEntityToAdDTO(repository.save(entity));
+    @Transactional
+    public AdDTO addAd(CreateOrUpdateAd createAd, MultipartFile imageFile, String username) throws IOException {
+        log.info("Starting ad creation for user: {}", username);
+
+        // Проверка входных данных
+        if (createAd == null) {
+            throw new IllegalArgumentException("Ad data cannot be null");
+        }
+
+        if (imageFile == null || imageFile.isEmpty()) {
+            throw new IllegalArgumentException("Image file is required");
+        }
+
+        if (!Objects.requireNonNull(imageFile.getContentType()).startsWith("image/")) {
+            throw new IllegalArgumentException("File must be an image");
+        }
+
+        // Получаем автора
+        Users author = usersRepository.findByEmail(username)
+                .orElseThrow(() -> {
+                    log.error("User not found: {}", username);
+                    return new IllegalArgumentException("User not found");
+                });
+
+        // Создаем объявление
+        Ad ad = new Ad();
+        ad.setTitle(createAd.getTitle());
+        ad.setPrice(createAd.getPrice());
+        ad.setDescription(createAd.getDescription());
+        ad.setAuthor(author);
+
+        // Сохраняем изображение
+        Image image = new Image();
+        image.setData(imageFile.getBytes());
+        image.setMediaType(imageFile.getContentType());
+        image.setFilePath("/images/" + imageFile.getOriginalFilename());
+
+        Image savedImage = imageRepository.save(image);
+        log.debug("Image saved with ID: {}", savedImage.getId());
+
+        ad.setImage(savedImage);
+
+        // Сохраняем объявление
+        Ad savedAd = adRepository.save(ad);
+        log.info("Ad created successfully with ID: {}", savedAd.getId());
+
+        // Формируем ответ
+        AdDTO adDTO = adMapper.adEntityToAdDTO(savedAd);
+        adDTO.setImage("/images/" + savedAd.getImage().getId());
+
+        return adDTO;
     }
 
     @Override
-    public void removeAd(int id) {
-        repository.deleteById(id);
+    @Transactional(readOnly = true)
+    public ExtendedAd getExtendedAd(Integer id) {
+        log.info("Getting extended ad with ID: {}", id);
+        Ad ad = adRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.error("Ad not found with ID: {}", id);
+                    return new AdNotFoundException(id);
+                });
+
+        return adMapper.adEntityToExtendedAd(ad);
     }
 
     @Override
-    public AdDTO updateAds(int id, CreateOrUpdateAd updateAd) {
-        Ad existingAd = repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("No such ad found."));
-        existingAd.setTitle(updateAd.getTitle());
-        existingAd.setPrice(updateAd.getPrice());
-        existingAd.setDescription(updateAd.getDescription());
-        return adMapper.adEntityToAdDTO(repository.save(existingAd));
+    @Transactional
+    public void removeAd(Integer id, String username) {
+        log.info("Deleting ad with ID: {} for user: {}", id, username);
+
+        Ad ad = adRepository.findById(id)
+                .orElseThrow(() -> new AdNotFoundException(id));
+
+        if (!ad.getAuthor().getEmail().equals(username)) {
+            throw new ForbiddenException("You are not the owner of this ad");
+        }
+
+        if (ad.getImage() != null) {
+            imageRepository.delete(ad.getImage());
+            log.debug("Deleted image for ad ID: {}", id);
+        }
+
+        adRepository.delete(ad);
+        log.info("Ad with ID {} deleted successfully", id);
     }
 
     @Override
-    public Ads getAdsMe() {
-        List<AdDTO> adDTOs = repository.findAll().stream()
-                .map(adMapper::adEntityToAdDTO)
+    @Transactional
+    public AdDTO updateAd(Integer id, CreateOrUpdateAd updateAd, String username) {
+        log.info("Updating ad with ID: {} for user: {}", id, username);
+
+        Ad ad = adRepository.findById(id)
+                .orElseThrow(() -> new AdNotFoundException(id));
+
+        if (!ad.getAuthor().getEmail().equals(username)) {
+            throw new ForbiddenException("You are not the owner of this ad");
+        }
+
+        ad.setTitle(updateAd.getTitle());
+        ad.setPrice(updateAd.getPrice());
+        ad.setDescription(updateAd.getDescription());
+
+        Ad updatedAd = adRepository.save(ad);
+        log.info("Ad with ID {} updated successfully", id);
+
+        AdDTO adDTO = adMapper.adEntityToAdDTO(updatedAd);
+        if (updatedAd.getImage() != null) {
+            adDTO.setImage("/images/" + updatedAd.getImage().getId());
+        }
+        return adDTO;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Ads getUserAds(String username) {
+        log.info("Getting ads for user: {}", username);
+
+        Users user = usersRepository.findByEmail(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        List<Ad> ads = adRepository.findAllByAuthorId(user.getId());
+        log.debug("Found {} ads for user {}", ads.size(), username);
+
+        List<AdDTO> adDTOs = ads.stream()
+                .map(ad -> {
+                    AdDTO dto = adMapper.adEntityToAdDTO(ad);
+                    if (ad.getImage() != null) {
+                        dto.setImage("/images/" + ad.getImage().getId());
+                    }
+                    return dto;
+                })
                 .collect(Collectors.toList());
 
-        Ads response = new Ads();
-        response.setCount(adDTOs.size());
-        response.setResults(adDTOs);
-        return response;
+        return new Ads(adDTOs.size(), adDTOs);
     }
 
     @Override
-    public String updateImage(int id, MultipartFile image) {
-        return "";
-    }
+    @Transactional
+    public byte[] updateAdImage(Integer id, MultipartFile imageFile, String username) throws IOException {
+        log.info("Updating image for ad ID: {} by user: {}", id, username);
 
-    @Override
-    public AdDTO getAds(int id) {
-        return adMapper.adEntityToAdDTO(
-                repository.findById(id)
-                        .orElseThrow(() -> new IllegalArgumentException("No such ad found."))
-        );
+        if (imageFile == null || imageFile.isEmpty()) {
+            throw new IllegalArgumentException("Image file is required");
+        }
+
+        if (!Objects.requireNonNull(imageFile.getContentType()).startsWith("image/")) {
+            throw new IllegalArgumentException("File must be an image");
+        }
+
+        Ad ad = adRepository.findById(id)
+                .orElseThrow(() -> new AdNotFoundException(id));
+
+        if (!ad.getAuthor().getEmail().equals(username)) {
+            throw new ForbiddenException("You are not the owner of this ad");
+        }
+
+        // Удаляем старое изображение, если есть
+        if (ad.getImage() != null) {
+            imageRepository.delete(ad.getImage());
+            log.debug("Deleted previous image for ad ID: {}", id);
+        }
+
+        // Создаем новое изображение
+        Image newImage = new Image();
+        newImage.setData(imageFile.getBytes());
+        newImage.setMediaType(imageFile.getContentType());
+        newImage.setFilePath("/images/" + imageFile.getOriginalFilename());
+
+        Image savedImage = imageRepository.save(newImage);
+        ad.setImage(savedImage);
+        adRepository.save(ad);
+
+        log.info("Image updated successfully for ad ID: {}", id);
+        return savedImage.getData();
     }
 }

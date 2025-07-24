@@ -7,11 +7,8 @@ import ru.skypro.homework.entity.Image;
 @Mapper(componentModel = "spring")
 public interface ImageMapper {
 
-    @Named("imageToPath") // Добавляем аннотацию @Named
-    default String convertImageToPath(Image image) {
-        if (image == null) {
-            return null;
-        }
-        return "/images/" + image.getId();
+    @Named("imageToPath")
+    default String imageToPath(Image image) {
+        return image != null ? "/images/" + image.getId() : null;
     }
 }

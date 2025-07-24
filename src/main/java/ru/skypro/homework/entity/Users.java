@@ -1,18 +1,21 @@
 package ru.skypro.homework.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import ru.skypro.homework.dto.Role;
 
 import java.util.List;
 
+@Getter
+@Setter
+@ToString
+@Builder
+@EqualsAndHashCode
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "users")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+
 public class Users {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
