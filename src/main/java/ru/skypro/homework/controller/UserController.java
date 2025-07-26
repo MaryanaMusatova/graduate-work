@@ -38,15 +38,15 @@ public class UserController {
 
     @PatchMapping("/me")
     public ResponseEntity<User> updateUser(
-                                            @RequestBody UpdateUser updateUser,
-                                            Authentication authentication) {
+            @RequestBody UpdateUser updateUser,
+            Authentication authentication) {
         return ResponseEntity.ok(userService.updateUserInfo(updateUser));
     }
 
     @PatchMapping(value = "/me/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<User> updateUserImage(
-                                                 @RequestParam("image") MultipartFile imageFile,
-                                                 Authentication authentication) throws IOException {
+            @RequestParam("image") MultipartFile imageFile,
+            Authentication authentication) throws IOException {
         return ResponseEntity.ok(userService.setUserImage(imageFile));
     }
 }

@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.skypro.homework.dto.Login;
 import ru.skypro.homework.dto.Register;
-import ru.skypro.homework.dto.RegisterRequest;
 import ru.skypro.homework.service.AuthService;
 
 @Slf4j
@@ -49,7 +48,7 @@ public class AuthController {
                     @ApiResponse(responseCode = "400", description = "Пользователь уже существует")
             }
     )
-    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<?> register(@RequestBody Register request) {
         log.info("Registration request for: {}", request.getUsername());
 
         Register register = new Register();

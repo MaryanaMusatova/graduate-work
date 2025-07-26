@@ -36,8 +36,8 @@ public class AdsController {
             @ApiResponse(responseCode = "401", description = "Unauthorized")
     })
     public ResponseEntity<AdDTO> addAd(
-            @RequestPart("properties") CreateOrUpdateAd properties,
-            @RequestPart("image") MultipartFile image,
+            @RequestPart CreateOrUpdateAd properties,
+            @RequestPart(required = false) MultipartFile image,  // сделали необязательным
             Authentication authentication) throws IOException {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(adsService.addAd(properties, image, authentication.getName()));

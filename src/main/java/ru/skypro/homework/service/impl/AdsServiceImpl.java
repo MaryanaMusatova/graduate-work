@@ -5,7 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import ru.skypro.homework.dto.ads.*;
+import ru.skypro.homework.dto.ads.AdDTO;
+import ru.skypro.homework.dto.ads.Ads;
+import ru.skypro.homework.dto.ads.CreateOrUpdateAd;
+import ru.skypro.homework.dto.ads.ExtendedAd;
 import ru.skypro.homework.entity.Ad;
 import ru.skypro.homework.entity.Image;
 import ru.skypro.homework.entity.Users;
@@ -57,55 +60,74 @@ public class AdsServiceImpl implements AdsService {
     @Override
     @Transactional
     public AdDTO addAd(CreateOrUpdateAd createAd, MultipartFile imageFile, String username) throws IOException {
-        log.info("Starting ad creation for user: {}", username);
+        // 1. Валидация входных данных
+        validateInput(createAd, username);
 
-        // Проверка входных данных
+        // 2. Получаем автора
+        Users author = usersRepository.findByEmail(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
+
+        // 3. Создаём объявление
+        Ad ad = createAdEntity(createAd, author);
+
+        // 4. Обрабатываем изображение (если есть)
+        if (imageFile != null && !imageFile.isEmpty()) {
+            Image image = processImage(imageFile);
+            ad.setImage(image);
+            log.debug("Image attached to ad: {}", image.getId());
+        } else {
+            log.warn("Ad created without image by user: {}", username);
+        }
+
+        // 5. Сохраняем объявление
+        Ad savedAd = adRepository.save(ad);
+        log.info("Ad saved successfully. ID: {}, Author: {}", savedAd.getId(), username);
+
+        // 6. Формируем ответ
+        return adMapper.adEntityToAdDTO(savedAd);
+    }
+
+    // --- Вспомогательные методы ---
+
+    /**
+     * Валидация входных данных.
+     */
+    private void validateInput(CreateOrUpdateAd createAd, String username) {
         if (createAd == null) {
             throw new IllegalArgumentException("Ad data cannot be null");
         }
-
-        if (imageFile == null || imageFile.isEmpty()) {
-            throw new IllegalArgumentException("Image file is required");
+        if (username == null || username.isBlank()) {
+            throw new IllegalArgumentException("Username is required");
         }
+        // Можно добавить проверку полей createAd (например, title не пустой)
+    }
 
-        if (!Objects.requireNonNull(imageFile.getContentType()).startsWith("image/")) {
-            throw new IllegalArgumentException("File must be an image");
-        }
-
-        // Получаем автора
-        Users author = usersRepository.findByEmail(username)
-                .orElseThrow(() -> {
-                    log.error("User not found: {}", username);
-                    return new IllegalArgumentException("User not found");
-                });
-
-        // Создаем объявление
+    /**
+     * Создаёт объект Ad из DTO.
+     */
+    private Ad createAdEntity(CreateOrUpdateAd createAd, Users author) {
         Ad ad = new Ad();
         ad.setTitle(createAd.getTitle());
         ad.setPrice(createAd.getPrice());
         ad.setDescription(createAd.getDescription());
         ad.setAuthor(author);
+        return ad;
+    }
 
-        // Сохраняем изображение
+    /**
+     * Обрабатывает загруженное изображение.
+     */
+    private Image processImage(MultipartFile imageFile) throws IOException {
+        if (!Objects.requireNonNull(imageFile.getContentType()).startsWith("image/")) {
+            throw new IllegalArgumentException("File must be an image");
+        }
+
         Image image = new Image();
         image.setData(imageFile.getBytes());
         image.setMediaType(imageFile.getContentType());
         image.setFilePath("/images/" + imageFile.getOriginalFilename());
 
-        Image savedImage = imageRepository.save(image);
-        log.debug("Image saved with ID: {}", savedImage.getId());
-
-        ad.setImage(savedImage);
-
-        // Сохраняем объявление
-        Ad savedAd = adRepository.save(ad);
-        log.info("Ad created successfully with ID: {}", savedAd.getId());
-
-        // Формируем ответ
-        AdDTO adDTO = adMapper.adEntityToAdDTO(savedAd);
-        adDTO.setImage("/images/" + savedAd.getImage().getId());
-
-        return adDTO;
+        return imageRepository.save(image);
     }
 
     @Override
