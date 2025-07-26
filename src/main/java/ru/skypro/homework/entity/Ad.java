@@ -1,49 +1,39 @@
 package ru.skypro.homework.entity;
 
+
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import java.util.List;
 
-@Data
+@Getter
+@Setter
+@ToString
+@Builder
+@EqualsAndHashCode
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
 @Table(name = "ads")
 public class Ad {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ad_id",nullable = false)
-    private Integer id; //id объявления
+    @Column(name = "ad_id")
+    private Integer id;
 
-    @Max(32)
-    @Min(4)
-    @Column(name = "title", nullable = false)
-    private String title; //заголовок объявления
+    @Column(nullable = false)
+    private String title;
 
-    @Max(10000000)
-    @Column(name = "price", nullable = false)
-    private Integer price; //цена объявления
+    @Column(nullable = false)
+    private Integer price;
 
-    @Max(64)
-    @Min(8)
-    @Column(name="description")
-    private String description; // описание объявления
+    @Column(columnDefinition = "TEXT")
+    private String description;
 
-    @ManyToOne
-    @JoinColumn(name = "author_id")
-    private Users author; //id автора объявления
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id", nullable = false)
+    private Users author;
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "image_id")
-    private Image image; //картинка объявления
-
-    @OneToMany(mappedBy = "ad", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    private List<Comment> comments; //комментарии к объявлению
+    private Image image;
 }
-

@@ -10,6 +10,3 @@ public interface UsersRepository extends CrudRepository<Users, Integer> {
 
     boolean existsByEmail(String email);
 }
-
-
-

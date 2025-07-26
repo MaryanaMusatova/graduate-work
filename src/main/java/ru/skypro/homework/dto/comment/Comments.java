@@ -1,10 +1,16 @@
 package ru.skypro.homework.dto.comment;
 
-import lombok.Data;
+import lombok.*;
 
 import java.util.List;
 
-@Data
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode
+@NoArgsConstructor
+@AllArgsConstructor
+
 public class Comments {
 
     private Integer count;

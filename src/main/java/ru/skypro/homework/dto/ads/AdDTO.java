@@ -1,18 +1,22 @@
 package ru.skypro.homework.dto.ads;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import java.util.PrimitiveIterator;
-
-@Data
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
 public class AdDTO {
+
     private Integer author;
+
     private String image;
-    private int pk;
-    private int price;
+
+    private Integer pk;
+
+    private Integer price;
+
     private String title;
 }
