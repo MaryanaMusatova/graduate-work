@@ -42,8 +42,7 @@ public class CommentController {
             @PathVariable Integer adId,
             @PathVariable Integer commentId,
             Authentication authentication) {
-        String username = authentication.getName();
-        commentService.deleteComment(adId, commentId, username);
+        commentService.deleteComment(adId, commentId, authentication);
         return ResponseEntity.ok().build();
     }
 
@@ -53,7 +52,6 @@ public class CommentController {
             @PathVariable Integer commentId,
             @RequestBody CreateOrUpdateComment comment,
             Authentication authentication) {
-        String username = authentication.getName();
-        return ResponseEntity.ok(commentService.editComment(adId, commentId, comment, username));
+        return ResponseEntity.ok(commentService.editComment(adId, commentId, comment, authentication));
     }
 }

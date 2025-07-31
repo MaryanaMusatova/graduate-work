@@ -59,7 +59,7 @@ public class AdsController {
             @ApiResponse(responseCode = "404", description = "Not Found")
     })
     public ResponseEntity<Void> removeAd(@PathVariable Integer id, Authentication authentication) {
-        adsService.removeAd(id, authentication.getName());
+        adsService.removeAd(id, authentication);
         return ResponseEntity.noContent().build();
     }
 
@@ -73,7 +73,7 @@ public class AdsController {
             @PathVariable Integer id,
             @RequestBody CreateOrUpdateAd updateAd,
             Authentication authentication) {
-        return ResponseEntity.ok(adsService.updateAd(id, updateAd, authentication.getName()));
+        return ResponseEntity.ok(adsService.updateAd(id, updateAd, authentication));
     }
 
     @GetMapping("/me")

@@ -28,6 +28,7 @@ public class WebSecurityConfig {
             "/ads/image/**",
             "/users/image/**",
             "/image/**",
+            "/images/**",
             "/error"
     };
 
@@ -44,6 +45,7 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(AUTH_WHITELIST).permitAll()
                         .requestMatchers("/users/**").authenticated()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/ads/**").authenticated()
                         .anyRequest().authenticated()
                 )
@@ -60,6 +62,7 @@ public class WebSecurityConfig {
         manager.setAuthoritiesByUsernameQuery(
                 "SELECT email as username, 'ROLE_' || role as authority FROM users WHERE email = ?");
         return manager;
+
     }
 
     @Bean
