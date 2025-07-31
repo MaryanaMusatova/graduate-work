@@ -1,15 +1,17 @@
 package ru.skypro.homework.dto.ads;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
+
 public class ExtendedAd {
 
-    private int pk;
+    private Integer pk;
 
     private String authorFirstName;
 

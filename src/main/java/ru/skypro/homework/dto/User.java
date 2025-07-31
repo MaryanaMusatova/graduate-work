@@ -1,16 +1,16 @@
 package ru.skypro.homework.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
     private Integer id;
     private String email;
-    private String password;
     private String firstName;
     private String lastName;
     private String phone;

@@ -1,5 +1,5 @@
 databaseChangeLog:
-  # 1. Сначала создаем таблицу image (без внешних зависимостей)
+  # 1. Создаем таблицу image с file_path (исправленная версия)
   - changeSet:
       id: 1
       author: skypro
@@ -15,14 +15,18 @@ databaseChangeLog:
                     primaryKey: true
                     nullable: false
               - column:
-                  name: data
-                  type: oid
+                  name: file_path  # относительный путь к файлу на диске
+                  type: varchar(255)
                   constraints:
                     nullable: false
               - column:
                   name: media_type
                   type: varchar(50)
-
+              - column:
+                  name: file_size  # размер файла в байтах
+                  type: bigint
+                  constraints:
+                    nullable: true
   # 2. Создаем таблицу users (пока без image_id)
   - changeSet:
       id: 2
@@ -46,17 +50,17 @@ databaseChangeLog:
                     unique: true
               - column:
                   name: password
-                  type: varchar(16)
+                  type: varchar(100)  # Увеличено для хранения хэша пароля
                   constraints:
                     nullable: false
               - column:
                   name: first_name
-                  type: varchar(16)
+                  type: varchar(32)  # Увеличено с 16 до 32
                   constraints:
                     nullable: false
               - column:
                   name: last_name
-                  type: varchar(16)
+                  type: varchar(32)  # Увеличено с 16 до 32
                   constraints:
                     nullable: false
               - column:
@@ -66,7 +70,7 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: role
-                  type: varchar(5)
+                  type: varchar(10)  # Увеличено с 5 до 10
                   constraints:
                     nullable: false
 

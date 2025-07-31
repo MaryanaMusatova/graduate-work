@@ -1,41 +1,27 @@
 package ru.skypro.homework.controller;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import ru.skypro.homework.dto.comment.CommentDTO;
 import ru.skypro.homework.dto.comment.Comments;
 import ru.skypro.homework.dto.comment.CreateOrUpdateComment;
-import ru.skypro.homework.entity.Ad;
-import ru.skypro.homework.entity.Comment;
-import ru.skypro.homework.entity.Users;
-import ru.skypro.homework.repository.AdRepository;
-import ru.skypro.homework.repository.CommentRepository;
-import ru.skypro.homework.mapper.AppMapper;
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
+import ru.skypro.homework.service.CommentService;
 
+import java.util.List;
 
 @RestController
-@RequestMapping("/api/ads")
+@RequestMapping("/ads")
 @RequiredArgsConstructor
+@CrossOrigin("http://localhost:3000/")
 public class CommentController {
-    private final CommentRepository commentRepository;
-    private final AdRepository adRepository;
-    private final AppMapper appMapper;
+
+    private final CommentService commentService;
 
     @GetMapping("/{adId}/comments")
     public ResponseEntity<Comments> getComments(@PathVariable Integer adId) {
-        List<CommentDTO> comments = commentRepository.findAllByAdId(adId).stream()
-                .map(appMapper::commentEntityToCommentDTO)
-                .collect(Collectors.toList());
-
+        List<CommentDTO> comments = commentService.getCommentsForAd(adId);
         Comments response = new Comments();
         response.setCount(comments.size());
         response.setResults(comments);
@@ -46,28 +32,18 @@ public class CommentController {
     public ResponseEntity<CommentDTO> addComment(
             @PathVariable Integer adId,
             @RequestBody CreateOrUpdateComment comment,
-            Authentication authentication
-    ) {
-        Users author = (Users) authentication.getPrincipal();
-        Ad ad = adRepository.findById(adId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-
-        Comment commentEntity = new Comment();
-        commentEntity.setText(comment.getText());
-        commentEntity.setAuthor(author);
-        commentEntity.setAd(ad);
-        commentEntity.setCreatedAt(LocalDateTime.now());
-
-        Comment savedComment = commentRepository.save(commentEntity);
-        return ResponseEntity.ok(appMapper.commentEntityToCommentDTO(savedComment));
+            Authentication authentication) {
+        String username = authentication.getName();
+        return ResponseEntity.ok(commentService.addComment(adId, comment, username));
     }
 
     @DeleteMapping("/{adId}/comments/{commentId}")
     public ResponseEntity<Void> deleteComment(
             @PathVariable Integer adId,
-            @PathVariable Integer commentId
-    ) {
-        commentRepository.deleteByIdAndAdId(commentId, adId);
+            @PathVariable Integer commentId,
+            Authentication authentication) {
+        String username = authentication.getName();
+        commentService.deleteComment(adId, commentId, username);
         return ResponseEntity.ok().build();
     }
 
@@ -75,13 +51,9 @@ public class CommentController {
     public ResponseEntity<CommentDTO> updateComment(
             @PathVariable Integer adId,
             @PathVariable Integer commentId,
-            @RequestBody CreateOrUpdateComment comment
-    ) {
-        Comment commentEntity = commentRepository.findByIdAndAdId(commentId, adId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-
-        commentEntity.setText(comment.getText());
-        Comment updatedComment = commentRepository.save(commentEntity);
-        return ResponseEntity.ok(appMapper.commentEntityToCommentDTO(updatedComment));
+            @RequestBody CreateOrUpdateComment comment,
+            Authentication authentication) {
+        String username = authentication.getName();
+        return ResponseEntity.ok(commentService.editComment(adId, commentId, comment, username));
     }
 }
