@@ -2,6 +2,7 @@ package ru.skypro.homework.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -140,13 +141,19 @@ public class AdsServiceImpl implements AdsService {
 
     @Override
     @Transactional
-    public void removeAd(Integer id, String username) {
+    public void removeAd(Integer id, Authentication authentication) {
+        String username = authentication.getName();
         log.info("Deleting ad ID: {} for user: {}", id, username);
 
         Ad ad = adRepository.findById(id)
                 .orElseThrow(() -> new AdNotFoundException(id));
 
-        if (!ad.getAuthor().getEmail().equals(username)) {
+        // Проверяем, является ли пользователь администратором
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+
+        // Разрешаем удаление если: пользователь - владелец или администратор
+        if (!isAdmin && !ad.getAuthor().getEmail().equals(username)) {
             throw new ForbiddenException("You are not the owner of this ad");
         }
 
@@ -169,13 +176,17 @@ public class AdsServiceImpl implements AdsService {
 
     @Override
     @Transactional
-    public AdDTO updateAd(Integer id, CreateOrUpdateAd updateAd, String username) {
+    public AdDTO updateAd(Integer id, CreateOrUpdateAd updateAd, Authentication authentication) {
+        String username = authentication.getName();
         log.info("Updating ad with ID: {} for user: {}", id, username);
 
         Ad ad = adRepository.findById(id)
                 .orElseThrow(() -> new AdNotFoundException(id));
 
-        if (!ad.getAuthor().getEmail().equals(username)) {
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!isAdmin && !ad.getAuthor().getEmail().equals(username)) {
             throw new ForbiddenException("You are not the owner of this ad");
         }
 

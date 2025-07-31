@@ -1,6 +1,7 @@
 package ru.skypro.homework.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.skypro.homework.dto.comment.CommentDTO;
@@ -57,14 +58,18 @@ public class CommentServiceImpl implements CommentService {
         return commentMapper.commentEntityToCommentDTO(commentRepository.save(comment));
     }
 
-
     @Override
     @Transactional
-    public CommentDTO editComment(Integer adId, Integer commentId, CreateOrUpdateComment updateComment, String username) {
+    public CommentDTO editComment(Integer adId, Integer commentId, CreateOrUpdateComment updateComment, Authentication authentication) {
+        String username = authentication.getName();
         Comment existingComment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CommentNotFoundException(commentId));
 
-        if (!existingComment.getAuthor().getEmail().equals(username)) {
+        // Проверяем, является ли пользователь администратором
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!isAdmin && !existingComment.getAuthor().getEmail().equals(username)) {
             throw new ForbiddenException("You can only edit your own comments");
         }
 
@@ -74,11 +79,16 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
-    public void deleteComment(Integer adId, Integer commentId, String username) {
+    public void deleteComment(Integer adId, Integer commentId, Authentication authentication) {
+        String username = authentication.getName();
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CommentNotFoundException(commentId));
 
-        if (!comment.getAuthor().getEmail().equals(username)) {
+        // Проверяем, является ли пользователь администратором
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!isAdmin && !comment.getAuthor().getEmail().equals(username)) {
             throw new ForbiddenException("You can only delete your own comments");
         }
 

@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface CommentService {
     List<CommentDTO> getCommentsForAd(Integer adId);
-    CommentDTO addComment(Integer adId, CreateOrUpdateComment createComment, String username); // Изменили параметр на String
-    CommentDTO editComment(Integer adId, Integer commentId, CreateOrUpdateComment updateComment, String username); // И здесь
-    void deleteComment(Integer adId, Integer commentId, String username); // И здесь
+    CommentDTO addComment(Integer adId, CreateOrUpdateComment createComment, String username);
+    CommentDTO editComment(Integer adId, Integer commentId, CreateOrUpdateComment updateComment, Authentication authentication);
+    void deleteComment(Integer adId, Integer commentId, Authentication authentication);
 }
