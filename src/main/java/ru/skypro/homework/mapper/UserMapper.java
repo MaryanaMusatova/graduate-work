@@ -14,6 +14,11 @@ public interface UserMapper {
     Users registerToUser(Register register);
 
     @Mapping(source = "email", target = "email")
-    @Mapping(target = "image", expression = "java(user.getImage() != null ? \"/images/\" + user.getImage().getId() : null)")
+    @Mapping(target = "image", expression = "java(user.getImage() != null ? \"/users/image/\" + getFileNameFromPath(user.getImage().getFilePath()) : null)")
     User userEntityToUserDTO(Users user);
+
+    default String getFileNameFromPath(String filePath) {
+        if (filePath == null) return null;
+        return filePath.substring(filePath.lastIndexOf('/') + 1);
+    }
 }

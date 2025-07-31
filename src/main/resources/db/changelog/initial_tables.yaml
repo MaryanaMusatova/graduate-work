@@ -1,5 +1,5 @@
 databaseChangeLog:
-  # 1. Создаем таблицу image с file_path
+  # 1. Создаем таблицу image с file_path (исправленная версия)
   - changeSet:
       id: 1
       author: skypro
@@ -15,19 +15,18 @@ databaseChangeLog:
                     primaryKey: true
                     nullable: false
               - column:
-                  name: data
-                  type: oid
+                  name: file_path  # относительный путь к файлу на диске
+                  type: varchar(255)
                   constraints:
                     nullable: false
               - column:
                   name: media_type
                   type: varchar(50)
               - column:
-                  name: file_path
-                  type: varchar(255)
+                  name: file_size  # размер файла в байтах
+                  type: bigint
                   constraints:
                     nullable: true
-
   # 2. Создаем таблицу users (пока без image_id)
   - changeSet:
       id: 2

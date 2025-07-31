@@ -1,6 +1,8 @@
 package ru.skypro.homework.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,7 +22,12 @@ import ru.skypro.homework.repository.ImageRepository;
 import ru.skypro.homework.service.UserService;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -29,6 +36,9 @@ public class UserServiceImpl implements UserService {
     private final ImageRepository imageRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+
+    @Value("${image.upload.dir}")
+    private String uploadDir;
 
     @Override
     @Transactional(readOnly = true)
@@ -51,8 +61,9 @@ public class UserServiceImpl implements UserService {
         user.setPhone(updateUser.getPhone());
 
         usersRepository.save(user);
-        return userMapper.userEntityToUserDTO(user); // Возвращаем User вместо UpdateUser
+        return userMapper.userEntityToUserDTO(user);
     }
+
     @Override
     @Transactional
     public User setUserImage(MultipartFile imageFile) throws IOException {
@@ -60,11 +71,28 @@ public class UserServiceImpl implements UserService {
         Users user = usersRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException(email));
 
+        // Генерация уникального имени файла
+        String filename = "user_" + UUID.randomUUID() + "_" +
+                (imageFile.getOriginalFilename() != null ?
+                        imageFile.getOriginalFilename() : "avatar");
+
+        // Сохранение файла на диск
+        Path filePath = Paths.get(uploadDir, "users", filename);
+        Files.createDirectories(filePath.getParent());
+        Files.write(filePath, imageFile.getBytes());
+
+        // Создание записи в БД (без данных изображения)
         Image newImage = new Image();
-        newImage.setData(imageFile.getBytes());
+        newImage.setFilePath("users/" + filename);
         newImage.setMediaType(imageFile.getContentType());
 
+        // Удаление старого изображения
         if (user.getImage() != null) {
+            try {
+                Files.deleteIfExists(Paths.get(uploadDir, user.getImage().getFilePath()));
+            } catch (IOException e) {
+                log.error("Failed to delete old image file: {}", user.getImage().getFilePath(), e);
+            }
             imageRepository.delete(user.getImage());
         }
 
@@ -72,7 +100,7 @@ public class UserServiceImpl implements UserService {
         user.setImage(savedImage);
         usersRepository.save(user);
 
-        return userMapper.userEntityToUserDTO(user); // Возвращаем User вместо void
+        return userMapper.userEntityToUserDTO(user);
     }
 
     @Override

@@ -37,7 +37,7 @@ public class AdsController {
     })
     public ResponseEntity<AdDTO> addAd(
             @RequestPart CreateOrUpdateAd properties,
-            @RequestPart(required = false) MultipartFile image,  // сделали необязательным
+            @RequestPart(required = false) MultipartFile image,
             Authentication authentication) throws IOException {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(adsService.addAd(properties, image, authentication.getName()));

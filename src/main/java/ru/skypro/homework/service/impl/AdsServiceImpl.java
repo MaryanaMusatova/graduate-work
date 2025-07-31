@@ -15,15 +15,19 @@ import ru.skypro.homework.entity.Users;
 import ru.skypro.homework.exception.AdNotFoundException;
 import ru.skypro.homework.exception.ForbiddenException;
 import ru.skypro.homework.mapper.AdMapper;
-import ru.skypro.homework.mapper.ImageMapper;
 import ru.skypro.homework.repository.AdRepository;
+import ru.skypro.homework.repository.CommentRepository;
 import ru.skypro.homework.repository.ImageRepository;
 import ru.skypro.homework.repository.UsersRepository;
 import ru.skypro.homework.service.AdsService;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -34,8 +38,8 @@ public class AdsServiceImpl implements AdsService {
     private final AdRepository adRepository;
     private final UsersRepository usersRepository;
     private final ImageRepository imageRepository;
+    private final CommentRepository commentRepository;
     private final AdMapper adMapper;
-    private final ImageMapper imageMapper;
 
     @Override
     @Transactional(readOnly = true)
@@ -60,17 +64,13 @@ public class AdsServiceImpl implements AdsService {
     @Override
     @Transactional
     public AdDTO addAd(CreateOrUpdateAd createAd, MultipartFile imageFile, String username) throws IOException {
-        // 1. Валидация входных данных
         validateInput(createAd, username);
 
-        // 2. Получаем автора
         Users author = usersRepository.findByEmail(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
 
-        // 3. Создаём объявление
         Ad ad = createAdEntity(createAd, author);
 
-        // 4. Обрабатываем изображение (если есть)
         if (imageFile != null && !imageFile.isEmpty()) {
             Image image = processImage(imageFile);
             ad.setImage(image);
@@ -79,19 +79,12 @@ public class AdsServiceImpl implements AdsService {
             log.warn("Ad created without image by user: {}", username);
         }
 
-        // 5. Сохраняем объявление
         Ad savedAd = adRepository.save(ad);
         log.info("Ad saved successfully. ID: {}, Author: {}", savedAd.getId(), username);
 
-        // 6. Формируем ответ
         return adMapper.adEntityToAdDTO(savedAd);
     }
 
-    // --- Вспомогательные методы ---
-
-    /**
-     * Валидация входных данных.
-     */
     private void validateInput(CreateOrUpdateAd createAd, String username) {
         if (createAd == null) {
             throw new IllegalArgumentException("Ad data cannot be null");
@@ -99,12 +92,8 @@ public class AdsServiceImpl implements AdsService {
         if (username == null || username.isBlank()) {
             throw new IllegalArgumentException("Username is required");
         }
-        // Можно добавить проверку полей createAd (например, title не пустой)
     }
 
-    /**
-     * Создаёт объект Ad из DTO.
-     */
     private Ad createAdEntity(CreateOrUpdateAd createAd, Users author) {
         Ad ad = new Ad();
         ad.setTitle(createAd.getTitle());
@@ -114,18 +103,24 @@ public class AdsServiceImpl implements AdsService {
         return ad;
     }
 
-    /**
-     * Обрабатывает загруженное изображение.
-     */
     private Image processImage(MultipartFile imageFile) throws IOException {
         if (!Objects.requireNonNull(imageFile.getContentType()).startsWith("image/")) {
             throw new IllegalArgumentException("File must be an image");
         }
 
+        String filename = "ad_" + UUID.randomUUID() + "_" +
+                (imageFile.getOriginalFilename() != null ?
+                        imageFile.getOriginalFilename() : "image");
+
+        Path uploadPath = Paths.get("./uploads/ads/");
+        Files.createDirectories(uploadPath);
+        Path filePath = uploadPath.resolve(filename);
+        Files.write(filePath, imageFile.getBytes());
+
         Image image = new Image();
-        image.setData(imageFile.getBytes());
+        image.setFilePath("ads/" + filename);
         image.setMediaType(imageFile.getContentType());
-        image.setFilePath("/images/" + imageFile.getOriginalFilename());
+        image.setFileSize(imageFile.getSize());
 
         return imageRepository.save(image);
     }
@@ -146,7 +141,7 @@ public class AdsServiceImpl implements AdsService {
     @Override
     @Transactional
     public void removeAd(Integer id, String username) {
-        log.info("Deleting ad with ID: {} for user: {}", id, username);
+        log.info("Deleting ad ID: {} for user: {}", id, username);
 
         Ad ad = adRepository.findById(id)
                 .orElseThrow(() -> new AdNotFoundException(id));
@@ -155,13 +150,21 @@ public class AdsServiceImpl implements AdsService {
             throw new ForbiddenException("You are not the owner of this ad");
         }
 
-        if (ad.getImage() != null) {
-            imageRepository.delete(ad.getImage());
-            log.debug("Deleted image for ad ID: {}", id);
+        try {
+            commentRepository.deleteByAdId(id);
+            if (ad.getImage() != null) {
+                try {
+                    Files.deleteIfExists(Paths.get("./uploads", ad.getImage().getFilePath()));
+                } catch (IOException e) {
+                    log.error("Failed to delete image file: {}", ad.getImage().getFilePath(), e);
+                }
+            }
+            adRepository.delete(ad);
+            log.info("Ad {} deleted successfully", id);
+        } catch (Exception e) {
+            log.error("Failed to delete ad {}: {}", id, e.getMessage());
+            throw new RuntimeException("Failed to delete ad", e);
         }
-
-        adRepository.delete(ad);
-        log.info("Ad with ID {} deleted successfully", id);
     }
 
     @Override
@@ -183,11 +186,7 @@ public class AdsServiceImpl implements AdsService {
         Ad updatedAd = adRepository.save(ad);
         log.info("Ad with ID {} updated successfully", id);
 
-        AdDTO adDTO = adMapper.adEntityToAdDTO(updatedAd);
-        if (updatedAd.getImage() != null) {
-            adDTO.setImage("/images/" + updatedAd.getImage().getId());
-        }
-        return adDTO;
+        return adMapper.adEntityToAdDTO(updatedAd);
     }
 
     @Override
@@ -234,23 +233,37 @@ public class AdsServiceImpl implements AdsService {
             throw new ForbiddenException("You are not the owner of this ad");
         }
 
-        // Удаляем старое изображение, если есть
+        // Удаляем старое изображение
         if (ad.getImage() != null) {
+            try {
+                Files.deleteIfExists(Paths.get("./uploads", ad.getImage().getFilePath()));
+            } catch (IOException e) {
+                log.error("Failed to delete old image file: {}", ad.getImage().getFilePath(), e);
+            }
             imageRepository.delete(ad.getImage());
-            log.debug("Deleted previous image for ad ID: {}", id);
         }
 
-        // Создаем новое изображение
+        // Сохраняем новое изображение
+        String filename = "ad_" + UUID.randomUUID() + "_" +
+                (imageFile.getOriginalFilename() != null ?
+                        imageFile.getOriginalFilename() : "image");
+
+        Path uploadPath = Paths.get("./uploads/ads/");
+        Files.createDirectories(uploadPath);
+        Path filePath = uploadPath.resolve(filename);
+        Files.write(filePath, imageFile.getBytes());
+
+        // Создаем запись в БД
         Image newImage = new Image();
-        newImage.setData(imageFile.getBytes());
+        newImage.setFilePath("ads/" + filename);
         newImage.setMediaType(imageFile.getContentType());
-        newImage.setFilePath("/images/" + imageFile.getOriginalFilename());
+        newImage.setFileSize(imageFile.getSize());
 
         Image savedImage = imageRepository.save(newImage);
         ad.setImage(savedImage);
         adRepository.save(ad);
 
         log.info("Image updated successfully for ad ID: {}", id);
-        return savedImage.getData();
+        return Files.readAllBytes(filePath);
     }
 }

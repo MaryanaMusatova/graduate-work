@@ -21,12 +21,6 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
 
-    @Value("${jwt.secret}")
-    private String jwtSecret;
-
-    @Value("${jwt.expiration}")
-    private long jwtExpirationMs;
-
     @Override
     public boolean login(String username, String password) {
         log.info("Attempting authentication for user: {}", username);

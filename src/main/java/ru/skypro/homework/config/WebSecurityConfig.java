@@ -1,24 +1,18 @@
 package ru.skypro.homework.config;
 
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.sql.DataSource;
-import java.util.List;
+
+import static org.springframework.security.config.Customizer.withDefaults;
 
 @Slf4j
 @Configuration
@@ -33,7 +27,7 @@ public class WebSecurityConfig {
             "/register",
             "/ads/image/**",
             "/users/image/**",
-            "/image",
+            "/image/**",
             "/error"
     };
 
@@ -44,52 +38,27 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Включаем CORS
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        return http
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(AUTH_WHITELIST).permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/ads").permitAll()
-                        .requestMatchers("/images/**").permitAll()
-                        .requestMatchers("/ads/**", "/users/**").authenticated()
+                        .requestMatchers("/users/**").authenticated()
+                        .requestMatchers("/ads/**").authenticated()
+                        .anyRequest().authenticated()
                 )
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                .httpBasic(basic -> basic
-                        .authenticationEntryPoint((request, response, authException) -> {
-                            log.warn("Authentication failed: {}", authException.getMessage());
-                            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
-                        })
-                );
-
-        return http.build();
-    }
-
-    // Настройка CORS
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true); // Важно для передачи кук и авторизации
-        configuration.setExposedHeaders(List.of("Authorization")); // Добавляем, если фронтенд использует кастомные заголовки
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
+                .cors(withDefaults())
+                .httpBasic(withDefaults())
+                .build();
     }
 
     @Bean
-    public JdbcUserDetailsManager jdbcUserDetailsManager() {
+    public JdbcUserDetailsManager jdbcUserDetailsManager(PasswordEncoder passwordEncoder) {
         JdbcUserDetailsManager manager = new JdbcUserDetailsManager(dataSource);
         manager.setUsersByUsernameQuery(
                 "SELECT email as username, password, true as enabled FROM users WHERE email = ?");
         manager.setAuthoritiesByUsernameQuery(
-                "SELECT email as username, role FROM users WHERE email = ?");
+                "SELECT email as username, 'ROLE_' || role as authority FROM users WHERE email = ?");
         return manager;
     }
 

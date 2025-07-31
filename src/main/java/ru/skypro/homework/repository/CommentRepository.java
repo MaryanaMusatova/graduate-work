@@ -1,6 +1,9 @@
 package ru.skypro.homework.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import ru.skypro.homework.entity.Comment;
 import java.util.List;
 import java.util.Optional;
@@ -30,5 +33,7 @@ public interface CommentRepository extends JpaRepository<Comment, Integer> {
     /**
      * Удаляет все комментарии по ID объявления
      */
-    void deleteAllByAdId(Integer adId);
+    @Modifying
+    @Query("DELETE FROM Comment c WHERE c.ad.id = :adId")
+    void deleteByAdId(@Param("adId") Integer adId);
 }

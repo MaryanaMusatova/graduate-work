@@ -1,6 +1,5 @@
 package ru.skypro.homework.dto.ads;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
